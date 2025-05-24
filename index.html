@@ -52,15 +52,15 @@
     .seat-container {
       display: grid;
       grid-template-columns: repeat(10, 1fr);
-      gap: 6px;
+      gap: 2px;
       justify-items: center;
     }
     .seat {
-      width: 22px;
-      height: 22px;
+      width: 22.5px;
+      height: 22.5px;
       border-radius: 4px;
       text-align: center;
-      line-height: 22px;
+      line-height: 22.5px;
       color: white;
     }
     select, input {
@@ -85,6 +85,9 @@
       font-size: 1.2em;
       cursor: pointer;
       float: right;
+    }
+    #statusView h2 {
+      text-align: center;
     }
   </style>
 </head>
@@ -127,8 +130,8 @@
   <div id="statusView" class="page">
     <h2>버스 좌석 현황</h2>
     <div class="seat-container" id="seatMap"></div>
-    <div id="etaInfo" style="margin-top: 16px; font-size: 1.2em; color: #007BFF;"></div>
-    <div id="congestionLevel" style="margin-top: 16px; font-size: 1.2em; font-weight: bold;"></div>
+    <div id="etaInfo" style="margin-top: 16px; font-size: 1.2em; color: #007BFF; text-align: center;"></div>
+    <div id="congestionLevel" style="margin-top: 16px; font-size: 1.2em; font-weight: bold; text-align: center;"></div>
     <div class="button" onclick="goTo('routeView')">뒤로</div>
     <div class="button" onclick="goTo('main')">홈으로</div>
   </div>
@@ -189,7 +192,7 @@
         seatMap.appendChild(seat);
       }
 
-      const remainingStops = Math.floor(Math.random() * 10) + 1;
+      const remainingStops = Math.floor(Math.random() * 5) + 1;
       const eta = remainingStops * 3;
       document.getElementById('etaInfo').textContent = `예상 도착 시간: 약 ${eta}분 (${remainingStops} 정거장 남음)`;
 
