@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>동네 한바퀴</title>
+
+  <!-- ✅ PWA 메타 태그 -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#007BFF" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      padding: 10px;
+      color: #333;
+    }
+    .page {
+      display: none;
+    }
+    .page.active {
+      display: block;
+    }
+    .card {
+      background: white;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .button {
+      background: #007BFF;
+      color: white;
+      padding: 10px;
+      text-align: center;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .footer {
+      text-align: center;
+      color: #999;
+      font-size: 14px;
+    }
+    .seat {
+      width: 30px;
+      height: 30px;
+      margin: 3px;
+      background-color: #ddd;
+      display: inline-block;
+      border-radius: 5px;
+      text-align: center;
+      line-height: 30px;
+    }
+    .seat.occupied {
+      background-color: #ff6666;
+    }
+  </style>
+</head>
+<body>
+  <div id="main" class="page active">
+    <h2>동네 한바퀴</h2>
+    <div class="card"><div class="button" onclick="goTo('busSearch')">버스 호주도 보기</div></div>
+    <div class="card">
+      <h3>소식</h3>
+      <ul>
+        <li>🟢 기후동합카드 제대군인 청년할인 연장, 온라인으로 편리하게 신청하세요!</li>
+        <li>🚌 버스 우회 및 맛차시간 연장 안내</li>
+      </ul>
+    </div>
+    <div class="card">버스 정보</div>
+    <div class="footer">하단 바너</div>
+  </div>
+
+  <div id="busSearch" class="page">
+    <div class="card">
+      <input type="text" id="busNumber" placeholder="버스 번호" style="width: 100%; padding: 8px;" />
+      <div class="button" onclick="searchBus()">검색</div>
+    </div>
+    <div class="button" onclick="goTo('main')">복귀</div>
+  </div>
+
+  <div id="statusView" class="page">
+    <div class="card">
+      <h3 id="busInfo"></h3>
+      <div id="arrivalInfo"></div>
+    </div>
+    <div class="card">
+      <h4>자석 형태</h4>
+      <div id="seats"></div>
+    </div>
+    <div class="button" onclick="goTo('main')">복귀</div>
+  </div>
+
+  <script>
+    function goTo(page) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById(page).classList.add('active');
+    }
+
+    function searchBus() {
+      const number = document.getElementById('busNumber').value;
+      const remainingStops = Math.floor(Math.random() * 10) + 1;
+      const arrivalMinutes = remainingStops * 3;
+      document.getElementById('busInfo').innerText = `현재 ${number}번 버스 정도`;
+      document.getElementById('arrivalInfo').innerText = `남은 정거장: ${remainingStops}거장, 예상 도착 시간: ${arrivalMinutes}분`;
+      showSeats();
+      goTo('statusView');
+    }
+
+    function showSeats() {
+      const seatsContainer = document.getElementById('seats');
+      seatsContainer.innerHTML = '';
+      for (let r = 0; r < 10; r++) {
+        for (let c = 0; c < 2; c++) {
+          const seat = document.createElement('div');
+          seat.classList.add('seat');
+          if (Math.random() < 0.3) seat.classList.add('occupied');
+          seat.innerText = r * 2 + c + 1;
+          seatsContainer.appendChild(seat);
+        }
+        seatsContainer.appendChild(document.createElement('br'));
+      }
+    }
+
+    // ✅ Service Worker 등록
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js')
+          .then(reg => console.log('Service Worker 등록 성공:', reg.scope))
+          .catch(err => console.log('Service Worker 등록 실패:', err));
+      });
+    }
+  </script>
+</body>
+</html>
