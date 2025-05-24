@@ -1,6 +1,6 @@
 {
   "name": "동네 한바퀴",
-  "short_name": "한바퀴",
+  "short_name": "동네 한바퀴",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
