@@ -13,122 +13,139 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
 
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
     body {
-      font-family: Arial, sans-serif;
-      background: #f0f0f0;
-      padding: 10px;
-      color: #333;
+      font-family: sans-serif;
+      margin: 0;
+      background: #f4f4f4;
     }
     .page {
       display: none;
+      padding: 16px;
     }
     .page.active {
       display: block;
     }
     .card {
       background: white;
-      padding: 15px;
-      margin-bottom: 10px;
-      border-radius: 10px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      padding: 16px;
+      margin-bottom: 16px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
     .button {
       background: #007BFF;
       color: white;
-      padding: 10px;
+      padding: 10px 20px;
+      border-radius: 8px;
       text-align: center;
-      border-radius: 5px;
       cursor: pointer;
+      margin-top: 10px;
     }
     .footer {
       text-align: center;
-      color: #999;
-      font-size: 14px;
+      padding: 20px;
+      font-size: 0.9em;
+      color: #777;
+    }
+    .seat-container {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 6px;
+      justify-items: center;
     }
     .seat {
       width: 30px;
       height: 30px;
-      margin: 3px;
-      background-color: #ddd;
-      display: inline-block;
-      border-radius: 5px;
+      background-color: lightgray;
+      border-radius: 4px;
       text-align: center;
       line-height: 30px;
     }
-    .seat.occupied {
-      background-color: #ff6666;
+    select, input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
     }
   </style>
 </head>
 <body>
   <div id="main" class="page active">
     <h2>동네 한바퀴</h2>
-    <div class="card"><div class="button" onclick="goTo('busSearch')">버스 호주도 보기</div></div>
+    <div class="card"><div class="button" onclick="goTo('busSearch')">버스 혼잡도 보기</div></div>
+
     <div class="card">
       <h3>소식</h3>
       <ul>
-        <li>🟢 기후동합카드 제대군인 청년할인 연장, 온라인으로 편리하게 신청하세요!</li>
-        <li>🚌 버스 우회 및 맛차시간 연장 안내</li>
+        <li>🟢 기후동행카드 제대군인 청년할인 연장, 온라인으로 편리하게 신청하세요!</li>
+        <li>🚌 버스 우회 및 막차시간 연장 안내</li>
       </ul>
     </div>
+
     <div class="card">버스 정보</div>
-    <div class="footer">하단 바너</div>
+    <div class="footer">하단 배너</div>
   </div>
 
   <div id="busSearch" class="page">
-    <div class="card">
-      <input type="text" id="busNumber" placeholder="버스 번호" style="width: 100%; padding: 8px;" />
-      <div class="button" onclick="searchBus()">검색</div>
+    <h2>버스 검색</h2>
+    <input type="text" id="busNumber" placeholder="버스 번호 입력" />
+    <div class="button" onclick="searchBus()">검색</div>
+    <div class="button" onclick="goTo('main')">뒤로</div>
+  </div>
+
+  <div id="routeView" class="page">
+    <h2 id="routeTitle"></h2>
+    <div>
+      <label>탑승 정거장:</label>
+      <select id="boardStation">
+        <option value="정거장 A">정거장 A</option>
+        <option value="정거장 B">정거장 B</option>
+        <option value="정거장 C">정거장 C</option>
+      </select>
+      <label>하차 정거장:</label>
+      <select id="dropStation">
+        <option value="정거장 D">정거장 D</option>
+        <option value="정거장 E">정거장 E</option>
+        <option value="정거장 F">정거장 F</option>
+      </select>
     </div>
-    <div class="button" onclick="goTo('main')">복귀</div>
+    <div class="button" onclick="goTo('statusView'); generateSeats()">탑승 현황 보기</div>
+    <div class="button" onclick="goTo('busSearch')">다시 검색</div>
   </div>
 
   <div id="statusView" class="page">
-    <div class="card">
-      <h3 id="busInfo"></h3>
-      <div id="arrivalInfo"></div>
-    </div>
-    <div class="card">
-      <h4>자석 형태</h4>
-      <div id="seats"></div>
-    </div>
-    <div class="button" onclick="goTo('main')">복귀</div>
+    <h2>버스 좌석 현황</h2>
+    <div class="seat-container" id="seatMap"></div>
+    <div id="etaInfo" style="margin-top: 16px; font-size: 1.2em; color: #007BFF;"></div>
+    <div class="button" onclick="goTo('main')">홈으로</div>
   </div>
 
   <script>
-    function goTo(page) {
+    function goTo(pageId) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      document.getElementById(page).classList.add('active');
+      document.getElementById(pageId).classList.add('active');
     }
 
     function searchBus() {
-      const number = document.getElementById('busNumber').value;
-      const remainingStops = Math.floor(Math.random() * 10) + 1;
-      const arrivalMinutes = remainingStops * 3;
-      document.getElementById('busInfo').innerText = `현재 ${number}번 버스 정도`;
-      document.getElementById('arrivalInfo').innerText = `남은 정거장: ${remainingStops}거장, 예상 도착 시간: ${arrivalMinutes}분`;
-      showSeats();
-      goTo('statusView');
+      const busNum = document.getElementById('busNumber').value;
+      document.getElementById('routeTitle').textContent = `${busNum}번 버스 노선`;
+      goTo('routeView');
     }
 
-    function showSeats() {
-      const seatsContainer = document.getElementById('seats');
-      seatsContainer.innerHTML = '';
-      for (let r = 0; r < 10; r++) {
-        for (let c = 0; c < 2; c++) {
-          const seat = document.createElement('div');
-          seat.classList.add('seat');
-          if (Math.random() < 0.3) seat.classList.add('occupied');
-          seat.innerText = r * 2 + c + 1;
-          seatsContainer.appendChild(seat);
-        }
-        seatsContainer.appendChild(document.createElement('br'));
+    function generateSeats() {
+      const seatMap = document.getElementById('seatMap');
+      seatMap.innerHTML = '';
+      for (let i = 1; i <= 20; i++) {
+        const seat = document.createElement('div');
+        seat.className = 'seat';
+        seat.textContent = i;
+        seatMap.appendChild(seat);
       }
+
+      const remainingStops = Math.floor(Math.random() * 10) + 1;
+      const eta = remainingStops * 3;
+      document.getElementById('etaInfo').textContent = `예상 도착 시간: 약 ${eta}분 (${remainingStops} 정거장 남음)`;
     }
 
     // ✅ Service Worker 등록
