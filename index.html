@@ -17,6 +17,8 @@
       font-family: sans-serif;
       margin: 0;
       background: #f4f4f4;
+      max-width: 1080px;
+      margin: 0 auto;
     }
     .page {
       display: none;
@@ -56,10 +58,10 @@
     .seat {
       width: 30px;
       height: 30px;
-      background-color: lightgray;
       border-radius: 4px;
       text-align: center;
       line-height: 30px;
+      color: white;
     }
     select, input {
       width: 100%;
@@ -68,13 +70,28 @@
       border: 1px solid #ccc;
       border-radius: 6px;
     }
+    .banner {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #ddd;
+      padding: 10px;
+      text-align: center;
+      font-size: 0.9em;
+    }
+    .favorite {
+      color: gold;
+      font-size: 1.2em;
+      cursor: pointer;
+      float: right;
+    }
   </style>
 </head>
 <body>
   <div id="main" class="page active">
     <h2>동네 한바퀴</h2>
     <div class="card"><div class="button" onclick="goTo('busSearch')">버스 혼잡도 보기</div></div>
-
     <div class="card">
       <h3>소식</h3>
       <ul>
@@ -82,9 +99,7 @@
         <li>🚌 버스 우회 및 막차시간 연장 안내</li>
       </ul>
     </div>
-
     <div class="card">버스 정보</div>
-    <div class="footer">하단 배너</div>
   </div>
 
   <div id="busSearch" class="page">
@@ -110,6 +125,9 @@
         <option value="정거장 F">정거장 F</option>
       </select>
     </div>
+    <div>
+      <span class="favorite" onclick="toggleFavorite()" id="favoriteStar">☆</span>
+    </div>
     <div class="button" onclick="goTo('statusView'); generateSeats()">탑승 현황 보기</div>
     <div class="button" onclick="goTo('busSearch')">다시 검색</div>
   </div>
@@ -118,10 +136,15 @@
     <h2>버스 좌석 현황</h2>
     <div class="seat-container" id="seatMap"></div>
     <div id="etaInfo" style="margin-top: 16px; font-size: 1.2em; color: #007BFF;"></div>
+    <div class="button" onclick="goTo('routeView')">뒤로</div>
     <div class="button" onclick="goTo('main')">홈으로</div>
   </div>
 
+  <div class="banner">광고 배너 영역</div>
+
   <script>
+    let isFavorite = false;
+
     function goTo(pageId) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.getElementById(pageId).classList.add('active');
@@ -140,6 +163,7 @@
         const seat = document.createElement('div');
         seat.className = 'seat';
         seat.textContent = i;
+        seat.style.backgroundColor = Math.random() < 0.5 ? 'green' : 'red';
         seatMap.appendChild(seat);
       }
 
@@ -148,7 +172,11 @@
       document.getElementById('etaInfo').textContent = `예상 도착 시간: 약 ${eta}분 (${remainingStops} 정거장 남음)`;
     }
 
-    // ✅ Service Worker 등록
+    function toggleFavorite() {
+      isFavorite = !isFavorite;
+      document.getElementById('favoriteStar').textContent = isFavorite ? '★' : '☆';
+    }
+
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('service-worker.js')
