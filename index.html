@@ -99,7 +99,7 @@
 </head>
 <body>
   <div id="main" class="page active">
-    <h2>동네 한바퀴</h2>
+    <h2 style="text-align: center;">동네 한바퀴</h2>
     <div class="card"><div class="button" onclick="goTo('busSearch')">버스 혼잡도 보기</div></div>
     <div class="card">
       <h3>소식</h3>
@@ -110,7 +110,7 @@
   </div>
 
   <div id="busSearch" class="page">
-    <h2>버스 검색</h2>
+    <h2 style="text-align: center;">버스 검색</h2>
     <input type="text" id="busNumber" placeholder="버스 번호 입력" />
     <div class="button" onclick="searchBus()">검색</div>
     <div id="searchMessage" class="message"></div>
@@ -220,10 +220,6 @@
       congestionDiv.style.color = color;
     }
 
-    function toggleFavorite() {
-      isFavorite = !isFavorite;
-      document.getElementById('favoriteStar').textContent = isFavorite ? '★' : '☆';
-    }
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
