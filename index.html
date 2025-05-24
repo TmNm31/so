@@ -52,15 +52,15 @@
     .seat-container {
       display: grid;
       grid-template-columns: repeat(10, 1fr);
-      gap: 2px;
+      gap: 1px;
       justify-items: center;
     }
     .seat {
-      width: 22.5px;
-      height: 22.5px;
+      width: 16.875px;
+      height: 16.875px;
       border-radius: 4px;
       text-align: center;
-      line-height: 22.5px;
+      line-height: 16.875px;
       color: white;
     }
     select, input {
@@ -89,6 +89,12 @@
     #statusView h2 {
       text-align: center;
     }
+    .message {
+      color: red;
+      font-weight: bold;
+      text-align: center;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -109,6 +115,7 @@
     <h2>버스 검색</h2>
     <input type="text" id="busNumber" placeholder="버스 번호 입력" />
     <div class="button" onclick="searchBus()">검색</div>
+    <div id="searchMessage" class="message"></div>
     <div class="button" onclick="goTo('main')">뒤로</div>
   </div>
 
@@ -128,7 +135,7 @@
   </div>
 
   <div id="statusView" class="page">
-    <h2>버스 좌석 현황</h2>
+    <h2 style="text-align: center;">버스 좌석 현황</h2>
     <div class="seat-container" id="seatMap"></div>
     <div id="etaInfo" style="margin-top: 16px; font-size: 1.2em; color: #007BFF; text-align: center;"></div>
     <div id="congestionLevel" style="margin-top: 16px; font-size: 1.2em; font-weight: bold; text-align: center;"></div>
@@ -156,6 +163,9 @@
 
     function searchBus() {
       const busNum = document.getElementById('busNumber').value.trim();
+      const messageDiv = document.getElementById('searchMessage');
+      messageDiv.textContent = '';
+
       const boardSelect = document.getElementById('boardStation');
       const dropSelect = document.getElementById('dropStation');
       boardSelect.innerHTML = '';
@@ -174,11 +184,18 @@
         });
         goTo('routeView');
       } else {
-        alert('해당 번호의 버스 노선이 없습니다. 다시 입력해 주세요.');
+        messageDiv.textContent = '해당 번호의 버스 노선이 없습니다. 다시 입력해 주세요.';
       }
     }
 
     function generateSeats() {
+      const board = document.getElementById('boardStation').value;
+      const drop = document.getElementById('dropStation').value;
+      if (board === drop) {
+        alert('탑승 정거장과 하차 정거장은 서로 달라야 합니다.');
+        return;
+      }
+
       const seatMap = document.getElementById('seatMap');
       seatMap.innerHTML = '';
       let occupiedCount = 0;
