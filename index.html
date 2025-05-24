@@ -103,10 +103,8 @@
     <div class="card"><div class="button" onclick="goTo('busSearch')">버스 혼잡도 보기</div></div>
     <div class="card">
       <h3>소식</h3>
-      <ul>
         <li>🟢 기후동행카드 제대군인 청년할인 연장, 온라인으로 편리하게 신청하세요!</li>
         <li>🚌 버스 우회 및 막차시간 연장 안내</li>
-      </ul>
     </div>
     <div class="card">버스 정보</div>
   </div>
@@ -209,7 +207,7 @@
         seatMap.appendChild(seat);
       }
 
-      const remainingStops = Math.floor(Math.random() * 3);
+      const remainingStops = Math.floor(Math.random() * 3+1);
       const eta = remainingStops * 3;
       document.getElementById('etaInfo').textContent = `예상 도착 시간: 약 ${eta}분 (${remainingStops} 정거장 남음)`;
 
