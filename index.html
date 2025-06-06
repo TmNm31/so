@@ -100,7 +100,23 @@
 </head>
 <body>
   <div class="card">
-    <h3>버스 좌석 및 혼잡도 확인</h3>
+    <h3>버스 노선 검색</h3>
+    <select id="routeSelect" onchange="updateStops()">
+      <option value="">노선을 선택하세요</option>
+      <option value="1">1번</option>
+      <option value="2">2번</option>
+      <option value="3">3번</option>
+      <option value="131">131번</option>
+      <option value="904">904번</option>
+    </select>
+
+    <div id="stopSelectors" style="display: none;">
+      <label>출발지:</label>
+      <select id="startSelect"></select>
+      <label>도착지:</label>
+      <select id="endSelect"></select>
+    </div>
+
     <a class="link-button" href="#cameraPage" onclick="showPage('cameraPage')">혼잡도 측정 및 좌석 보기</a>
   </div>
 
@@ -120,6 +136,10 @@
       document.getElementById(id).classList.add('active');
     }
 
+    function isRunningStandalone() {
+      return (window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+    }
+
     let routes = {
       "1": ["반성터미널", "시정", "진주외국어고등학교/반성시장", "구리/반성시장"],
       "2": ["반성터미널", "수목원 방면시정", "수목원 방면진주외국어고등학교/반성시장"],
@@ -127,6 +147,34 @@
       "131": ["진양호차고지/경해여자고등학교", "진양호삼거리", "평거초등학교"],
       "904": ["진주시외터미널", "진주역", "시티프라디움1차/무듬산", "사천공항"]
     };
+
+    function updateStops() {
+      const selectedRoute = document.getElementById('routeSelect').value;
+      const stopSelectors = document.getElementById('stopSelectors');
+      const startSelect = document.getElementById('startSelect');
+      const endSelect = document.getElementById('endSelect');
+
+      if (!selectedRoute || !routes[selectedRoute]) {
+        stopSelectors.style.display = 'none';
+        return;
+      }
+
+      stopSelectors.style.display = 'block';
+
+      const stops = routes[selectedRoute];
+      startSelect.innerHTML = '';
+      endSelect.innerHTML = '';
+
+      stops.forEach(stop => {
+        const opt1 = document.createElement('option');
+        opt1.value = opt1.textContent = stop;
+        startSelect.appendChild(opt1);
+
+        const opt2 = document.createElement('option');
+        opt2.value = opt2.textContent = stop;
+        endSelect.appendChild(opt2);
+      });
+    }
 
     function renderSeats(count = 0) {
       const seatContainer = document.getElementById('seatContainer');
@@ -147,6 +195,11 @@
     }
 
     async function detectPeople() {
+      if (!isRunningStandalone()) {
+        alert("이 기능은 앱 설치 후 실행했을 때만 사용할 수 있습니다.");
+        return;
+      }
+
       try {
         const video = document.getElementById('video');
         const stream = await navigator.mediaDevices.getUserMedia({
