@@ -88,8 +88,11 @@
   </style>
 </head>
 <body>
-  <!-- HTML 구조는 변경 없음 -->
-  <!-- ...생략... -->
+  <div class="card">
+    <div class="button" onclick="detectPeople()">카메라로 혼잡도 측정</div>
+    <video id="video" autoplay playsinline muted></video>
+    <div id="congestionLevel" class="message"></div>
+  </div>
   <script>
     let routes = {
       "1": ["반성터미널", "시정", "진주외국어고등학교/반성시장", "구리/반성시장"],
@@ -99,16 +102,16 @@
       "904": ["진주시외터미널", "진주역", "시티프라디움1차/무듬산", "사천공항"]
     };
 
-    // 기존 함수 생략
-
     async function detectPeople() {
       try {
         const video = document.getElementById('video');
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: 'environment' } } });
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: 'environment' } },
+          audio: false
+        });
         video.srcObject = stream;
 
         const model = await cocoSsd.load();
-        alert("모델이 로드되었습니다. 감지를 시작합니다.");
 
         function analyzeFrame() {
           model.detect(video).then(predictions => {
@@ -138,8 +141,6 @@
         alert("카메라 접근에 실패했습니다: " + err.message);
       }
     }
-
-    // 서비스워커 등록 생략
   </script>
 </body>
 </html>
