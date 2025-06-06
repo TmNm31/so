@@ -12,63 +12,55 @@
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.14.0"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
   <style>
-    html {
-      font-size: 16px;
-    }
     body {
       font-family: sans-serif;
       margin: 0;
       background: #f4f4f4;
-      max-width: 425px;
+      max-width: 1080px;
       margin: 0 auto;
-      padding: 0;
     }
-    .page { display: none; padding: 1rem; }
+    .page { display: none; padding: 16px; }
     .page.active { display: block; }
     .card {
       background: white;
-      padding: 1rem;
-      margin-bottom: 1rem;
+      padding: 16px;
+      margin-bottom: 16px;
       border-radius: 12px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
     .button {
       background: #007BFF;
       color: white;
-      padding: 0.75rem 1rem;
+      padding: 10px 20px;
       border-radius: 8px;
       text-align: center;
       cursor: pointer;
-      margin-top: 0.75rem;
-      font-size: 1rem;
+      margin-top: 10px;
     }
     .footer {
       text-align: center;
-      padding: 1.25rem;
-      font-size: 0.9rem;
+      padding: 20px;
+      font-size: 0.9em;
       color: #777;
     }
     .seat-container {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 0.25rem;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 1px;
       justify-items: center;
     }
     .seat {
-      width: 40px;
-      height: 40px;
-      font-size: 1.25rem;
-      border-radius: 6px;
+      width: 22px;
+      height: 22px;
+      border-radius: 4px;
       text-align: center;
-      line-height: 40px;
+      line-height: 22px;
       color: white;
     }
-    select,
-    input {
+    select, input {
       width: 100%;
-      padding: 0.75rem;
-      margin: 0.5rem 0;
-      font-size: 1rem;
+      padding: 10px;
+      margin: 8px 0;
       border: 1px solid #ccc;
       border-radius: 6px;
     }
@@ -76,12 +68,11 @@
       color: red;
       font-weight: bold;
       text-align: center;
-      margin-top: 0.75rem;
-      font-size: 1rem;
+      margin-top: 10px;
     }
     video {
       width: 100%;
-      margin-top: 0.5rem;
+      margin-top: 10px;
       border-radius: 8px;
     }
     .link-button {
@@ -89,16 +80,173 @@
       background: #28a745;
       color: white;
       text-align: center;
-      padding: 1rem;
-      margin: 1.25rem;
+      padding: 12px;
+      margin: 20px;
       border-radius: 10px;
       text-decoration: none;
       font-weight: bold;
-      font-size: 1rem;
     }
   </style>
 </head>
 <body>
-  <!-- HTML 본문은 그대로 유지 -->
+  <div id="main" class="page active">
+    <h2 style="text-align: center;">동네 한바퀴</h2>
+    <div class="card"><div class="button" onclick="showPage('startPage')">버스 혼잡도 보기</div></div>
+    <div class="card">
+      <h3>소식</h3>
+      <li>🟢 기후동행카드 제대군인 청년할인 연장, 온라인으로 편리하게 신청하세요!</li>
+      <li>🚌 버스 우회 및 막차시간 연장 안내</li>
+      <h3>버스정보</h3>
+      <li>🚌 버스 노선 변경 안내</li>
+      <li>🟢 2번,11번,904번 노선변경</li>
+    </div>
+  </div>
+
+  <div id="startPage" class="page">
+    <div class="card">
+      <h3>버스 번호를 입력하세요</h3>
+      <input type="text" id="busNumberInput" placeholder="예: 131" />
+      <div class="button" onclick="nextToRouteSelection()">노선 확인</div>
+      <div class="button" onclick="showPage('main')">← 뒤로가기</div>
+    </div>
+  </div>
+
+  <div id="routePage" class="page">
+    <div class="card">
+      <h3>출발지와 도착지를 선택하세요</h3>
+      <select id="startSelect"></select>
+      <select id="endSelect"></select>
+      <div class="button" onclick="nextToSeatView()">좌석 보기</div>
+      <div class="button" onclick="showPage('startPage')">← 뒤로가기</div>
+    </div>
+  </div>
+
+  <div id="seatPage" class="page">
+    <div class="card">
+      <h3>버스 좌석 및 혼잡도</h3>
+      <div id="busInfo"></div>
+      <div id="congestionLevel" class="message"></div>
+      <div class="seat-container" id="seatContainer"></div>
+      <div class="button" onclick="showPage('cameraPage')">카메라로 혼잡도 확인</div>
+      <div class="button" onclick="showPage('routePage')">← 뒤로가기</div>
+    </div>
+  </div>
+
+  <div id="cameraPage" class="page">
+    <div class="card">
+      <div class="button" onclick="detectPeople()">카메라로 혼잡도 측정</div>
+      <video id="video" autoplay playsinline muted></video>
+      <div id="cameraCongestionLevel" class="message"></div>
+      <h4>좌석별 탑승 현황</h4>
+      <div class="seat-container" id="cameraSeatContainer"></div>
+      <div class="button" onclick="showPage('seatPage')">← 뒤로가기</div>
+    </div>
+  </div>
+
+  <script>
+    function showPage(id) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    const routes = {
+      "1": ["반성터미널", "시정", "진주외국어고등학교/반성시장", "구리/반성시장"],
+      "2": ["반성터미널", "수목원 방면시정", "수목원 방면진주외국어고등학교/반성시장"],
+      "3": ["반성터미널", "반성중학교", "다무", "다무경로회관"],
+      "131": ["진양호차고지/경해여자고등학교", "진양호삼거리", "평거초등학교"],
+      "904": ["진주시외터미널", "진주역", "시티프라디움1차/무듬산", "사천공항"]
+    };
+
+    function nextToRouteSelection() {
+      const busNum = document.getElementById('busNumberInput').value.trim();
+      if (!routes[busNum]) {
+        alert("해당 버스 번호의 노선 정보가 없습니다.");
+        return;
+      }
+      const startSel = document.getElementById('startSelect');
+      const endSel = document.getElementById('endSelect');
+      startSel.innerHTML = '';
+      endSel.innerHTML = '';
+      routes[busNum].forEach(stop => {
+        startSel.innerHTML += `<option value="${stop}">${stop}</option>`;
+        endSel.innerHTML += `<option value="${stop}">${stop}</option>`;
+      });
+      showPage('routePage');
+    }
+
+    function nextToSeatView() {
+      const start = document.getElementById('startSelect').value;
+      const end = document.getElementById('endSelect').value;
+      document.getElementById('busInfo').innerText = `출발: ${start}, 도착: ${end}\n예상 도착: 3정거장 후`;
+      renderSeats(0, 'seatContainer');
+      showPage('seatPage');
+    }
+
+    function renderSeats(count = 0, containerId = 'seatContainer') {
+      const seatContainer = document.getElementById(containerId);
+      seatContainer.innerHTML = '';
+      for (let i = 0; i < 20; i++) {
+        const seat = document.createElement('div');
+        seat.className = 'seat';
+        seat.style.backgroundColor = i < count ? '#28a745' : '#ccc';
+        seat.textContent = i < count ? '■' : '□';
+        seatContainer.appendChild(seat);
+      }
+    }
+
+    function isRunningStandalone() {
+      return (window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+    }
+
+    let modelPromise = cocoSsd.load();
+
+    async function detectPeople() {
+      if (!isRunningStandalone()) {
+        alert("이 기능은 앱 설치 후 실행했을 때만 사용할 수 있습니다.");
+        return;
+      }
+
+      try {
+        const video = document.getElementById('video');
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: 'environment' } },
+          audio: false
+        });
+        video.srcObject = stream;
+
+        const model = await modelPromise;
+        let lastCount = -1;
+        let stableFrames = 0;
+
+        function analyzeFrame() {
+          model.detect(video).then(predictions => {
+            const personCount = predictions.filter(p => p.class === 'person' && p.score > 0.6).length;
+            if (personCount === lastCount) {
+              stableFrames++;
+            } else {
+              stableFrames = 0;
+              lastCount = personCount;
+            }
+            if (stableFrames < 3) {
+              requestAnimationFrame(analyzeFrame);
+              return;
+            }
+
+            let levelText = personCount >= 10 ? '매우 혼잡' : personCount >= 5 ? '혼잡' : '여유';
+            let color = personCount >= 10 ? 'red' : personCount >= 5 ? 'orange' : 'green';
+
+            const congestionDiv = document.getElementById('cameraCongestionLevel');
+            congestionDiv.textContent = `혼잡도: ${levelText} (감지된 사람 수: ${personCount})`;
+            congestionDiv.style.color = color;
+
+            renderSeats(Math.min(personCount, 20), 'cameraSeatContainer');
+          });
+        }
+        analyzeFrame();
+      } catch (err) {
+        alert("카메라 접근에 실패했습니다: " + err.message);
+      }
+    }
+  </script>
 </body>
 </html>
