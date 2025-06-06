@@ -85,15 +85,39 @@
       margin-top: 10px;
       border-radius: 8px;
     }
+    .link-button {
+      display: block;
+      background: #28a745;
+      color: white;
+      text-align: center;
+      padding: 12px;
+      margin: 20px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
   <div class="card">
-    <div class="button" onclick="detectPeople()">카메라로 혼잡도 측정</div>
-    <video id="video" autoplay playsinline muted></video>
-    <div id="congestionLevel" class="message"></div>
+    <h3>버스 좌석 및 혼잡도 확인</h3>
+    <a class="link-button" href="#cameraPage" onclick="showPage('cameraPage')">혼잡도 측정 및 좌석 보기</a>
   </div>
+
+  <div id="cameraPage" class="page">
+    <div class="card">
+      <div class="button" onclick="detectPeople()">카메라로 혼잡도 측정</div>
+      <video id="video" autoplay playsinline muted></video>
+      <div id="congestionLevel" class="message"></div>
+    </div>
+  </div>
+
   <script>
+    function showPage(id) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
     let routes = {
       "1": ["반성터미널", "시정", "진주외국어고등학교/반성시장", "구리/반성시장"],
       "2": ["반성터미널", "수목원 방면시정", "수목원 방면진주외국어고등학교/반성시장"],
