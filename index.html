@@ -89,11 +89,25 @@
   </style>
 </head>
 <body>
-  <div id="startPage" class="page active">
+  <div id="main" class="page active">
+    <h2 style="text-align: center;">동네 한바퀴</h2>
+    <div class="card"><div class="button" onclick="showPage('startPage')">버스 혼잡도 보기</div></div>
+    <div class="card">
+      <h3>소식</h3>
+      <li>🟢 기후동행카드 제대군인 청년할인 연장, 온라인으로 편리하게 신청하세요!</li>
+      <li>🚌 버스 우회 및 막차시간 연장 안내</li>
+      <h3>버스정보</h3>
+      <li>🚌 버스 노선 변경 안내</li>
+      <li>🟢 2번,11번,904번 노선변경</li>
+    </div>
+  </div>
+
+  <div id="startPage" class="page">
     <div class="card">
       <h3>버스 번호를 입력하세요</h3>
       <input type="text" id="busNumberInput" placeholder="예: 131" />
       <div class="button" onclick="nextToRouteSelection()">노선 확인</div>
+      <div class="button" onclick="showPage('main')">← 뒤로가기</div>
     </div>
   </div>
 
@@ -103,6 +117,7 @@
       <select id="startSelect"></select>
       <select id="endSelect"></select>
       <div class="button" onclick="nextToSeatView()">좌석 보기</div>
+      <div class="button" onclick="showPage('startPage')">← 뒤로가기</div>
     </div>
   </div>
 
@@ -112,7 +127,8 @@
       <div id="busInfo"></div>
       <div id="congestionLevel" class="message"></div>
       <div class="seat-container" id="seatContainer"></div>
-      <div class="button" onclick="showPage('cameraPage')">좌석 안 확인하기</div>
+      <div class="button" onclick="showPage('cameraPage')">카메라로 혼잡도 확인</div>
+      <div class="button" onclick="showPage('routePage')">← 뒤로가기</div>
     </div>
   </div>
 
@@ -120,9 +136,10 @@
     <div class="card">
       <div class="button" onclick="detectPeople()">카메라로 혼잡도 측정</div>
       <video id="video" autoplay playsinline muted></video>
-      <div id="congestionLevel" class="message"></div>
+      <div id="cameraCongestionLevel" class="message"></div>
       <h4>좌석별 탑승 현황</h4>
-      <div class="seat-container" id="seatContainer"></div>
+      <div class="seat-container" id="cameraSeatContainer"></div>
+      <div class="button" onclick="showPage('seatPage')">← 뒤로가기</div>
     </div>
   </div>
 
@@ -161,12 +178,12 @@
       const start = document.getElementById('startSelect').value;
       const end = document.getElementById('endSelect').value;
       document.getElementById('busInfo').innerText = `출발: ${start}, 도착: ${end}\n예상 도착: 3정거장 후`;
-      renderSeats(0);
+      renderSeats(0, 'seatContainer');
       showPage('seatPage');
     }
 
-    function renderSeats(count = 0) {
-      const seatContainer = document.getElementById('seatContainer');
+    function renderSeats(count = 0, containerId = 'seatContainer') {
+      const seatContainer = document.getElementById(containerId);
       seatContainer.innerHTML = '';
       for (let i = 0; i < 20; i++) {
         const seat = document.createElement('div');
@@ -218,11 +235,11 @@
             let levelText = personCount >= 10 ? '매우 혼잡' : personCount >= 5 ? '혼잡' : '여유';
             let color = personCount >= 10 ? 'red' : personCount >= 5 ? 'orange' : 'green';
 
-            const congestionDiv = document.getElementById('congestionLevel');
+            const congestionDiv = document.getElementById('cameraCongestionLevel');
             congestionDiv.textContent = `혼잡도: ${levelText} (감지된 사람 수: ${personCount})`;
             congestionDiv.style.color = color;
 
-            renderSeats(Math.min(personCount, 20));
+            renderSeats(Math.min(personCount, 20), 'cameraSeatContainer');
           });
         }
         analyzeFrame();
