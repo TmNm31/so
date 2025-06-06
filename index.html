@@ -109,6 +109,8 @@
       <div class="button" onclick="detectPeople()">카메라로 혼잡도 측정</div>
       <video id="video" autoplay playsinline muted></video>
       <div id="congestionLevel" class="message"></div>
+      <h4>좌석별 탑승 현황</h4>
+      <div class="seat-container" id="seatContainer"></div>
     </div>
   </div>
 
@@ -125,6 +127,24 @@
       "131": ["진양호차고지/경해여자고등학교", "진양호삼거리", "평거초등학교"],
       "904": ["진주시외터미널", "진주역", "시티프라디움1차/무듬산", "사천공항"]
     };
+
+    function renderSeats(count = 0) {
+      const seatContainer = document.getElementById('seatContainer');
+      seatContainer.innerHTML = '';
+      for (let i = 0; i < 20; i++) {
+        const seat = document.createElement('div');
+        seat.className = 'seat';
+        if (i < count) {
+          seat.style.backgroundColor = '#28a745';
+          seat.textContent = '■';
+        } else {
+          seat.style.backgroundColor = '#ccc';
+          seat.textContent = '□';
+        }
+        seatContainer.appendChild(seat);
+      }
+      console.log(`탑승자 수: ${count}`);
+    }
 
     async function detectPeople() {
       try {
@@ -157,6 +177,8 @@
             const congestionDiv = document.getElementById('congestionLevel');
             congestionDiv.textContent = `혼잡도: ${levelText} (감지된 사람 수: ${personCount})`;
             congestionDiv.style.color = color;
+
+            renderSeats(Math.min(personCount, 20));
           });
           requestAnimationFrame(analyzeFrame);
         }
@@ -165,6 +187,8 @@
         alert("카메라 접근에 실패했습니다: " + err.message);
       }
     }
+
+    renderSeats(0);
   </script>
 </body>
 </html>
