@@ -72,24 +72,24 @@
       text-decoration: none;
       font-weight: bold;
     }
-    .seat {
-      display: inline-block;
-      width: 40px;
-      height: 40px;
-      margin: 4px;
-      text-align: center;
-      line-height: 40px;
-      border-radius: 4px;
-      font-size: 18px;
+    .seat-container-5col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
     .seat-row {
       display: flex;
       justify-content: center;
     }
-    .seat-container-2col {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+    .seat {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      margin: 4px;
+      text-align: center;
+      line-height: 24px;
+      border-radius: 4px;
+      font-size: 16px;
     }
   </style>
 </head>
@@ -131,18 +131,17 @@
       <h3>버스 좌석 및 혼잡도</h3>
       <div id="busInfo"></div>
       <div id="congestionLevel" class="message"></div>
-      <div id="seatContainer"></div>
-      <div class="button" onclick="showPage('cameraPage')">카메라로 혼잡도 확인</div>
+      <div id="seatContainer" class="seat-container-5col"></div>
+      <div class="button" onclick="detectPeople()">카메라로 혼잡도 확인</div>
       <div class="button" onclick="showPage('routePage')">← 뒤로가기</div>
     </div>
   </div>
 
   <div id="cameraPage" class="page">
     <div class="card">
-      <div class="button" onclick="detectPeople()">카메라로 혼잡도 측정</div>
       <video id="video" autoplay playsinline muted></video>
       <div id="cameraCongestionLevel" class="message"></div>
-      <div id="cameraSeatContainer"></div>
+      <div id="cameraSeatContainer" class="seat-container-5col"></div>
       <div class="button" onclick="showPage('seatPage')">← 뒤로가기</div>
     </div>
   </div>
@@ -196,21 +195,17 @@
     function renderSeats(count = 0, containerId = 'seatContainer') {
       const seatContainer = document.getElementById(containerId);
       seatContainer.innerHTML = '';
-      seatContainer.className = 'seat-container-2col';
-
-      for (let i = 0; i < 10; i++) {
+      for (let i = 0; i < 4; i++) {
         const row = document.createElement('div');
         row.className = 'seat-row';
-
-        for (let j = 0; j < 2; j++) {
-          const seatIndex = i * 2 + j;
+        for (let j = 0; j < 5; j++) {
+          const seatIndex = i * 5 + j;
           const seat = document.createElement('div');
           seat.className = 'seat';
           seat.style.backgroundColor = seatIndex < count ? '#28a745' : '#ccc';
           seat.textContent = seatIndex < count ? '■' : '□';
           row.appendChild(seat);
         }
-
         seatContainer.appendChild(row);
       }
     }
@@ -235,19 +230,18 @@
         alert("카메라 접근에 실패했습니다: " + err.message);
       });
 
-      const levels = ['쾌적', '보통', '혼잡'];
-      let index = 0;
-      setInterval(() => {
-        const level = levels[index % levels.length];
-        const color = level === '쾌적' ? 'green' : level === '보통' ? 'orange' : 'red';
-        const div = document.getElementById('cameraCongestionLevel');
-        div.textContent = `혼잡도: ${level}`;
-        div.style.color = color;
+      showPage('cameraPage');
 
-        const count = level === '쾌적' ? rand(1, 4) : level === '보통' ? rand(5, 13) : rand(14, 20);
-        renderSeats(count, 'cameraSeatContainer');
-        index++;
-      }, 10000);
+      const levels = ['쾌적', '보통', '혼잡'];
+      const index = Math.floor(Math.random() * 3);
+      const level = levels[index];
+      const color = level === '쾌적' ? 'green' : level === '보통' ? 'orange' : 'red';
+      const div = document.getElementById('cameraCongestionLevel');
+      div.textContent = `혼잡도: ${level}`;
+      div.style.color = color;
+
+      const count = level === '쾌적' ? rand(1, 4) : level === '보통' ? rand(5, 13) : rand(14, 20);
+      renderSeats(count, 'cameraSeatContainer');
     }
   </script>
 </body>
