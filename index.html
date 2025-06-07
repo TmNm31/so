@@ -147,6 +147,12 @@
     function showPage(id) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.getElementById(id).classList.add('active');
+
+      if (id === 'cameraPage') {
+        startCameraSimulation();
+      } else {
+        if (cameraSimInterval) clearInterval(cameraSimInterval);
+      }
     }
 
     const routes = {
@@ -246,6 +252,31 @@
       } catch (err) {
         alert("카메라 접근에 실패했습니다: " + err.message);
       }
+    }
+
+    let cameraSimInterval;
+
+    function startCameraSimulation() {
+      const levels = [
+        { text: '쾌적', color: 'green', count: 2 },
+        { text: '보통', color: 'orange', count: 7 },
+        { text: '혼잡', color: 'red', count: 14 }
+      ];
+      let index = 0;
+
+      if (cameraSimInterval) clearInterval(cameraSimInterval);
+
+      function updateSimulation() {
+        const level = levels[index];
+        document.getElementById('cameraCongestionLevel').textContent =
+          `혼잡도: ${level.text} (예상 인원: ${level.count})`;
+        document.getElementById('cameraCongestionLevel').style.color = level.color;
+        renderSeats(level.count, 'cameraSeatContainer');
+        index = (index + 1) % levels.length;
+      }
+
+      updateSimulation();
+      cameraSimInterval = setInterval(updateSimulation, 10000);
     }
   </script>
 </body>
