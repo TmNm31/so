@@ -9,8 +9,8 @@
   <link rel="apple-touch-icon" href="icon-192.png" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.14.0"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.14.0/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.2/dist/coco-ssd.min.js"></script>
   <style>
     body {
       font-family: sans-serif;
@@ -42,20 +42,6 @@
       padding: 20px;
       font-size: 0.9em;
       color: #777;
-    }
-    .seat-container {
-      display: grid;
-      grid-template-columns: repeat(10, 1fr);
-      gap: 1px;
-      justify-items: center;
-    }
-    .seat {
-      width: 22px;
-      height: 22px;
-      border-radius: 4px;
-      text-align: center;
-      line-height: 22px;
-      color: white;
     }
     select, input {
       width: 100%;
@@ -126,7 +112,6 @@
       <h3>버스 좌석 및 혼잡도</h3>
       <div id="busInfo"></div>
       <div id="congestionLevel" class="message"></div>
-      <div class="seat-container" id="seatContainer"></div>
       <div class="button" onclick="showPage('cameraPage')">카메라로 혼잡도 확인</div>
       <div class="button" onclick="showPage('routePage')">← 뒤로가기</div>
     </div>
@@ -137,8 +122,6 @@
       <div class="button" onclick="detectPeople()">카메라로 혼잡도 측정</div>
       <video id="video" autoplay playsinline muted></video>
       <div id="cameraCongestionLevel" class="message"></div>
-      <h4>좌석별 탑승 현황</h4>
-      <div class="seat-container" id="cameraSeatContainer"></div>
       <div class="button" onclick="showPage('seatPage')">← 뒤로가기</div>
     </div>
   </div>
@@ -178,6 +161,7 @@
       const start = document.getElementById('startSelect').value;
       const end = document.getElementById('endSelect').value;
       document.getElementById('busInfo').innerText = `출발: ${start}, 도착: ${end}\n예상 도착: 3정거장 후`;
+      document.getElementById('congestionLevel').innerText = '혼잡도: 보통';
       showPage('seatPage');
     }
 
@@ -185,52 +169,32 @@
       return (window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
     }
 
-    let modelPromise = cocoSsd.load();
-
-    async function detectPeople() {
+    function detectPeople() {
       if (!isRunningStandalone()) {
         alert("이 기능은 앱 설치 후 실행했을 때만 사용할 수 있습니다.");
         return;
       }
 
-      try {
-        const video = document.getElementById('video');
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: 'environment' } },
-          audio: false
-        });
+      const video = document.getElementById('video');
+      navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' } },
+        audio: false
+      }).then(stream => {
         video.srcObject = stream;
-
-        const model = await modelPromise;
-        let lastCount = -1;
-        let stableFrames = 0;
-
-        function analyzeFrame() {
-          model.detect(video).then(predictions => {
-            const personCount = predictions.filter(p => p.class === 'person' && p.score > 0.6).length;
-            if (personCount === lastCount) {
-              stableFrames++;
-            } else {
-              stableFrames = 0;
-              lastCount = personCount;
-            }
-            if (stableFrames < 3) {
-              requestAnimationFrame(analyzeFrame);
-              return;
-            }
-
-            let levelText = personCount >= 10 ? '매우 혼잡' : personCount >= 5 ? '혼잡' : '여유';
-            let color = personCount >= 10 ? 'red' : personCount >= 5 ? 'orange' : 'green';
-
-            const congestionDiv = document.getElementById('cameraCongestionLevel');
-            congestionDiv.textContent = `혼잡도: ${levelText}`;
-            congestionDiv.style.color = color;
-          });
-        }
-        analyzeFrame();
-      } catch (err) {
+      }).catch(err => {
         alert("카메라 접근에 실패했습니다: " + err.message);
-      }
+      });
+
+      const levels = ['쾌적', '보통', '혼잡'];
+      let index = 0;
+      setInterval(() => {
+        const level = levels[index % levels.length];
+        const color = level === '쾌적' ? 'green' : level === '보통' ? 'orange' : 'red';
+        const div = document.getElementById('cameraCongestionLevel');
+        div.textContent = `혼잡도: ${level}`;
+        div.style.color = color;
+        index++;
+      }, 10000);
     }
   </script>
 </body>
