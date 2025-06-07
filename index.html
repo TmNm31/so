@@ -74,63 +74,180 @@
     }
     .seat {
       display: inline-block;
-      width: 24px;
-      height: 24px;
+      width: 40px;
+      height: 40px;
       margin: 4px;
       text-align: center;
-      line-height: 24px;
+      line-height: 40px;
       border-radius: 4px;
-      font-size: 16px;
+      font-size: 18px;
+    }
+    .seat-row {
+      display: flex;
+      justify-content: center;
+    }
+    .seat-container-2col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
   </style>
 </head>
 <body>
-  <!-- ... (기존 HTML 내용 생략) ... -->
+  <div id="main" class="page active">
+    <h2 style="text-align: center;">동네 한바퀴</h2>
+    <div class="card"><div class="button" onclick="showPage('startPage')">버스 혼잡도 보기</div></div>
+    <div class="card">
+      <h3>소식</h3>
+      <li>🟢 기후동행카드 제대군인 청년할인 연장, 온라인으로 편리하게 신청하세요!</li>
+      <li>🚌 버스 우회 및 막차시간 연장 안내</li>
+      <h3>버스정보</h3>
+      <li>🚌 버스 노선 변경 안내</li>
+      <li>🟢 2번,11번,904번 노선변경</li>
+    </div>
+  </div>
+
+  <div id="startPage" class="page">
+    <div class="card">
+      <h3>버스 번호를 입력하세요</h3>
+      <input type="text" id="busNumberInput" placeholder="예: 131" />
+      <div class="button" onclick="nextToRouteSelection()">노선 확인</div>
+      <div class="button" onclick="showPage('main')">← 뒤로가기</div>
+    </div>
+  </div>
+
+  <div id="routePage" class="page">
+    <div class="card">
+      <h3>출발지와 도착지를 선택하세요</h3>
+      <select id="startSelect"></select>
+      <select id="endSelect"></select>
+      <div class="button" onclick="nextToSeatView()">좌석 보기</div>
+      <div class="button" onclick="showPage('startPage')">← 뒤로가기</div>
+    </div>
+  </div>
+
+  <div id="seatPage" class="page">
+    <div class="card">
+      <h3>버스 좌석 및 혼잡도</h3>
+      <div id="busInfo"></div>
+      <div id="congestionLevel" class="message"></div>
+      <div id="seatContainer"></div>
+      <div class="button" onclick="showPage('cameraPage')">카메라로 혼잡도 확인</div>
+      <div class="button" onclick="showPage('routePage')">← 뒤로가기</div>
+    </div>
+  </div>
+
+  <div id="cameraPage" class="page">
+    <div class="card">
+      <div class="button" onclick="detectPeople()">카메라로 혼잡도 측정</div>
+      <video id="video" autoplay playsinline muted></video>
+      <div id="cameraCongestionLevel" class="message"></div>
+      <div id="cameraSeatContainer"></div>
+      <div class="button" onclick="showPage('seatPage')">← 뒤로가기</div>
+    </div>
+  </div>
+
   <script>
-    function renderSeats(occupiedCount = 0, containerId = 'seatContainer') {
+    function showPage(id) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    const routes = {
+      "1": ["반성터미널", "시정", "진주외국어고등학교/반성시장", "구리/반성시장"],
+      "2": ["반성터미널", "수목원 방면시정", "수목원 방면진주외국어고등학교/반성시장"],
+      "3": ["반성터미널", "반성중학교", "다무", "다무경로회관"],
+      "131": ["진양호차고지/경해여자고등학교", "진양호삼거리", "평거초등학교"],
+      "904": ["진주시외터미널", "진주역", "시티프라디움1차/무듬산", "사천공항"]
+    };
+
+    function nextToRouteSelection() {
+      const busNum = document.getElementById('busNumberInput').value.trim();
+      if (!routes[busNum]) {
+        alert("해당 버스 번호의 노선 정보가 없습니다.");
+        return;
+      }
+      const startSel = document.getElementById('startSelect');
+      const endSel = document.getElementById('endSelect');
+      startSel.innerHTML = '';
+      endSel.innerHTML = '';
+      routes[busNum].forEach(stop => {
+        startSel.innerHTML += `<option value="${stop}">${stop}</option>`;
+        endSel.innerHTML += `<option value="${stop}">${stop}</option>`;
+      });
+      showPage('routePage');
+    }
+
+    function nextToSeatView() {
+      const start = document.getElementById('startSelect').value;
+      const end = document.getElementById('endSelect').value;
+      document.getElementById('busInfo').innerText = `출발: ${start}, 도착: ${end}\n예상 도착: 3정거장 후`;
+      const randomLevel = ['쾌적', '보통', '혼잡'][Math.floor(Math.random() * 3)];
+      document.getElementById('congestionLevel').innerText = `혼잡도: ${randomLevel}`;
+      const count = randomLevel === '쾌적' ? rand(1, 4) : randomLevel === '보통' ? rand(5, 13) : rand(14, 20);
+      renderSeats(count, 'seatContainer');
+      showPage('seatPage');
+    }
+
+    function rand(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function renderSeats(count = 0, containerId = 'seatContainer') {
       const seatContainer = document.getElementById(containerId);
       seatContainer.innerHTML = '';
+      seatContainer.className = 'seat-container-2col';
 
-      const rows = 5;
-      const cols = 4; // 2 좌석 | 통로 | 2 좌석
-      let seatIndex = 0;
-
-      for (let i = 0; i < rows; i++) {
+      for (let i = 0; i < 10; i++) {
         const row = document.createElement('div');
-        row.style.display = 'flex';
-        row.style.justifyContent = 'center';
-        row.style.margin = '6px 0';
+        row.className = 'seat-row';
 
-        for (let j = 0; j < cols; j++) {
+        for (let j = 0; j < 2; j++) {
+          const seatIndex = i * 2 + j;
           const seat = document.createElement('div');
           seat.className = 'seat';
-          seat.style.width = '30px';
-          seat.style.height = '30px';
-          seat.style.margin = '0 4px';
-          seat.style.borderRadius = '6px';
-          seat.style.textAlign = 'center';
-          seat.style.lineHeight = '30px';
-          seat.style.fontSize = '16px';
-          seat.style.color = 'white';
-
-          if (j === 1) {
-            seat.style.visibility = 'hidden'; // 가운데 통로 공간
-          } else {
-            if (seatIndex < occupiedCount) {
-              seat.style.backgroundColor = '#28a745'; // 초록 (혼잡)
-              seat.textContent = '■';
-            } else {
-              seat.style.backgroundColor = '#ccc'; // 빈 좌석
-              seat.textContent = '□';
-            }
-            seatIndex++;
-          }
-
+          seat.style.backgroundColor = seatIndex < count ? '#28a745' : '#ccc';
+          seat.textContent = seatIndex < count ? '■' : '□';
           row.appendChild(seat);
         }
 
         seatContainer.appendChild(row);
       }
+    }
+
+    function isRunningStandalone() {
+      return (window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+    }
+
+    function detectPeople() {
+      if (!isRunningStandalone()) {
+        alert("이 기능은 앱 설치 후 실행했을 때만 사용할 수 있습니다.");
+        return;
+      }
+
+      const video = document.getElementById('video');
+      navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' } },
+        audio: false
+      }).then(stream => {
+        video.srcObject = stream;
+      }).catch(err => {
+        alert("카메라 접근에 실패했습니다: " + err.message);
+      });
+
+      const levels = ['쾌적', '보통', '혼잡'];
+      let index = 0;
+      setInterval(() => {
+        const level = levels[index % levels.length];
+        const color = level === '쾌적' ? 'green' : level === '보통' ? 'orange' : 'red';
+        const div = document.getElementById('cameraCongestionLevel');
+        div.textContent = `혼잡도: ${level}`;
+        div.style.color = color;
+
+        const count = level === '쾌적' ? rand(1, 4) : level === '보통' ? rand(5, 13) : rand(14, 20);
+        renderSeats(count, 'cameraSeatContainer');
+        index++;
+      }, 10000);
     }
   </script>
 </body>
