@@ -178,13 +178,7 @@
       const start = document.getElementById('startSelect').value;
       const end = document.getElementById('endSelect').value;
       document.getElementById('busInfo').innerText = `출발: ${start}, 도착: ${end}\n예상 도착: 3정거장 후`;
-      renderSeats(0, 'seatContainer');
       showPage('seatPage');
-    }
-
-    function renderSeats(count = 0, containerId = 'seatContainer') {
-      const seatContainer = document.getElementById(containerId);
-      seatContainer.innerHTML = '';
     }
 
     function isRunningStandalone() {
@@ -231,8 +225,6 @@
             const congestionDiv = document.getElementById('cameraCongestionLevel');
             congestionDiv.textContent = `혼잡도: ${levelText}`;
             congestionDiv.style.color = color;
-
-            renderSeats(Math.min(personCount, 20), 'cameraSeatContainer');
           });
         }
         analyzeFrame();
