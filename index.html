@@ -43,20 +43,6 @@
       font-size: 0.9em;
       color: #777;
     }
-    .seat-container {
-      display: grid;
-      grid-template-columns: repeat(10, 1fr);
-      gap: 1px;
-      justify-items: center;
-    }
-    .seat {
-      width: 22px;
-      height: 22px;
-      border-radius: 4px;
-      text-align: center;
-      line-height: 22px;
-      color: white;
-    }
     select, input {
       width: 100%;
       padding: 10px;
@@ -75,16 +61,19 @@
       margin-top: 10px;
       border-radius: 8px;
     }
-    .link-button {
-      display: block;
-      background: #28a745;
-      color: white;
+    .seat-container {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 1px;
+      justify-items: center;
+    }
+    .seat {
+      width: 22px;
+      height: 22px;
+      border-radius: 4px;
       text-align: center;
-      padding: 12px;
-      margin: 20px;
-      border-radius: 10px;
-      text-decoration: none;
-      font-weight: bold;
+      line-height: 22px;
+      color: white;
     }
   </style>
 </head>
@@ -125,8 +114,7 @@
     <div class="card">
       <h3>버스 좌석 및 혼잡도</h3>
       <div id="busInfo"></div>
-      <div id="congestionLevel" class="message"></div>
-      <div class="seat-container" id="seatContainer"></div>
+      <div id="congestionLevel" class="message">보통 (예상 혼잡도)</div>
       <div class="button" onclick="showPage('cameraPage')">카메라로 혼잡도 확인</div>
       <div class="button" onclick="showPage('routePage')">← 뒤로가기</div>
     </div>
@@ -147,12 +135,6 @@
     function showPage(id) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.getElementById(id).classList.add('active');
-
-      if (id === 'cameraPage') {
-        startCameraSimulation();
-      } else {
-        if (cameraSimInterval) clearInterval(cameraSimInterval);
-      }
     }
 
     const routes = {
@@ -184,7 +166,8 @@
       const start = document.getElementById('startSelect').value;
       const end = document.getElementById('endSelect').value;
       document.getElementById('busInfo').innerText = `출발: ${start}, 도착: ${end}\n예상 도착: 3정거장 후`;
-      renderSeats(0, 'seatContainer');
+      document.getElementById('congestionLevel').textContent = '보통 (예상 혼잡도)';
+      document.getElementById('congestionLevel').style.color = 'orange';
       showPage('seatPage');
     }
 
@@ -254,30 +237,22 @@
       }
     }
 
-    let cameraSimInterval;
-
-    function startCameraSimulation() {
-      const levels = [
-        { text: '쾌적', color: 'green', count: 2 },
-        { text: '보통', color: 'orange', count: 7 },
-        { text: '혼잡', color: 'red', count: 14 }
-      ];
-      let index = 0;
-
-      if (cameraSimInterval) clearInterval(cameraSimInterval);
-
-      function updateSimulation() {
-        const level = levels[index];
-        document.getElementById('cameraCongestionLevel').textContent =
-          `혼잡도: ${level.text} (예상 인원: ${level.count})`;
-        document.getElementById('cameraCongestionLevel').style.color = level.color;
-        renderSeats(level.count, 'cameraSeatContainer');
-        index = (index + 1) % levels.length;
+    // 혼잡도 텍스트 10초 간격 순환 (쾌적 → 보통 → 혼잡)
+    const congestionCycle = [
+      { text: '쾌적 (예상 혼잡도)', color: 'green' },
+      { text: '보통 (예상 혼잡도)', color: 'orange' },
+      { text: '혼잡 (예상 혼잡도)', color: 'red' }
+    ];
+    let congestionIndex = 0;
+    setInterval(() => {
+      const el = document.getElementById('congestionLevel');
+      if (el && el.offsetParent !== null) {
+        const data = congestionCycle[congestionIndex % congestionCycle.length];
+        el.textContent = data.text;
+        el.style.color = data.color;
+        congestionIndex++;
       }
-
-      updateSimulation();
-      cameraSimInterval = setInterval(updateSimulation, 10000);
-    }
+    }, 10000);
   </script>
 </body>
 </html>
