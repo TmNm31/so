@@ -171,6 +171,9 @@
       const start = document.getElementById('startSelect').value;
       const end = document.getElementById('endSelect').value;
       document.getElementById('busInfo').innerText = `출발: ${start}, 도착: ${end}\n예상 도착: 3정거장 후`;
+      const randomLevel = ['쾌적', '보통', '혼잡'][Math.floor(Math.random() * 3)];
+      document.getElementById('congestionLevel').innerText = `혼잡도: ${randomLevel}`;
+      const count = randomLevel === '쾌적' ? rand(1, 4) : randomLevel === '보통' ? rand(5, 13) : rand(14, 20);
       renderSeats(count, 'seatContainer');
       showPage('seatPage');
     }
