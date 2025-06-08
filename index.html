@@ -36,7 +36,6 @@
       text-align: center;
       cursor: pointer;
       margin-top: 10px;
-      user-select: none;
     }
     .footer {
       text-align: center;
@@ -73,25 +72,20 @@
       text-decoration: none;
       font-weight: bold;
     }
+    .seat-row {
+      display: flex;
+      justify-content: center;
+      margin: 4px 0;
+    }
     .seat {
       display: inline-block;
-      width: 24px;
-      height: 24px;
+      width: 30px;
+      height: 30px;
       margin: 4px;
       text-align: center;
-      line-height: 24px;
+      line-height: 30px;
       border-radius: 4px;
       font-size: 16px;
-    }
-    /* 좌석 10열 종대 (세로 10줄, 1열) 스타일 */
-    #seatContainer, #cameraSeatContainer {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-    .seat-row {
-      margin: 2px 0;
     }
   </style>
 </head>
@@ -134,7 +128,7 @@
       <div id="busInfo"></div>
       <div id="congestionLevel" class="message"></div>
       <div id="seatContainer"></div>
-      <div class="button" onclick="showCameraPage()">카메라로 혼잡도 확인</div>
+      <div class="button" onclick="showPage('cameraPage'); detectPeople();">카메라로 혼잡도 확인</div>
       <div class="button" onclick="showPage('routePage')">← 뒤로가기</div>
     </div>
   </div>
@@ -185,7 +179,7 @@
       document.getElementById('busInfo').innerText = `출발: ${start}, 도착: ${end}\n예상 도착: 3정거장 후`;
       const randomLevel = ['쾌적', '보통', '혼잡'][Math.floor(Math.random() * 3)];
       document.getElementById('congestionLevel').innerText = `혼잡도: ${randomLevel}`;
-      const count = randomLevel === '쾌적' ? rand(1, 4) : randomLevel === '보통' ? rand(5, 13) : rand(14, 20);
+      const count = randomLevel === '쾌적' ? rand(1, 3) : randomLevel === '보통' ? rand(4, 6) : rand(7, 10);
       renderSeats(count, 'seatContainer');
       showPage('seatPage');
     }
@@ -194,19 +188,22 @@
       return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
-    // 좌석 10열 종대 (세로 10줄, 1열씩)
     function renderSeats(count = 0, containerId = 'seatContainer') {
       const seatContainer = document.getElementById(containerId);
       seatContainer.innerHTML = '';
-      for (let i = 0; i < 10; i++) {
-        const row = document.createElement('div');
-        row.className = 'seat-row';
-        const seat = document.createElement('div');
-        seat.className = 'seat';
-        seat.style.backgroundColor = i < count ? '#28a745' : '#ccc';
-        seat.textContent = i < count ? '■' : '□';
-        row.appendChild(seat);
-        seatContainer.appendChild(row);
+      let seatNumber = 0;
+      for (let row = 0; row < 2; row++) {
+        const seatRow = document.createElement('div');
+        seatRow.className = 'seat-row';
+        for (let col = 0; col < 5; col++) {
+          const seat = document.createElement('div');
+          seat.className = 'seat';
+          seat.style.backgroundColor = seatNumber < count ? '#28a745' : '#ccc';
+          seat.textContent = seatNumber < count ? '■' : '□';
+          seatRow.appendChild(seat);
+          seatNumber++;
+        }
+        seatContainer.appendChild(seatRow);
       }
     }
 
@@ -214,26 +211,13 @@
       return (window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
     }
 
-    // 카메라 혼잡도 페이지로 이동하며 즉시 카메라와 좌석 랜더링 시작
-    function showCameraPage() {
+    function detectPeople() {
       if (!isRunningStandalone()) {
         alert("이 기능은 앱 설치 후 실행했을 때만 사용할 수 있습니다.");
         return;
       }
-      showPage('cameraPage');
-      startCameraAndDetection();
-    }
 
-    let detectionInterval = null;
-
-    function startCameraAndDetection() {
       const video = document.getElementById('video');
-
-      if (detectionInterval) {
-        clearInterval(detectionInterval);
-        detectionInterval = null;
-      }
-
       navigator.mediaDevices.getUserMedia({
         video: { facingMode: { ideal: 'environment' } },
         audio: false
@@ -244,28 +228,14 @@
       });
 
       const levels = ['쾌적', '보통', '혼잡'];
-      let index = 0;
-
-      // 즉시 첫 결과도 보여주기
-      updateCameraCongestion(levels[index % levels.length]);
-      index++;
-
-      detectionInterval = setInterval(() => {
-        updateCameraCongestion(levels[index % levels.length]);
-        index++;
-      }, 10000);
-    }
-
-    function updateCameraCongestion(level) {
-      const div = document.getElementById('cameraCongestionLevel');
+      const level = levels[Math.floor(Math.random() * 3)];
       const color = level === '쾌적' ? 'green' : level === '보통' ? 'orange' : 'red';
+      const div = document.getElementById('cameraCongestionLevel');
       div.textContent = `혼잡도: ${level}`;
       div.style.color = color;
-
-      const count = level === '쾌적' ? rand(1, 4) : level === '보통' ? rand(5, 13) : rand(14, 20);
+      const count = level === '쾌적' ? rand(1, 3) : level === '보통' ? rand(4, 6) : rand(7, 10);
       renderSeats(count, 'cameraSeatContainer');
     }
-
   </script>
 </body>
 </html>
